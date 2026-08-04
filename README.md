@@ -2,6 +2,9 @@
 
 Automatically logs you into BIT's WiFi portal — and kicks out any other device using your account first (since only one device can be connected at a time).
 
+> ⚠️ **Linux only.** This will not work on Windows or macOS.
+
+
 ## Setup (one time)
 
 ```bash
