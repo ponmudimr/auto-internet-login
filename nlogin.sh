@@ -7,15 +7,15 @@ PORTAL="http://172.16.0.200:2280"
 CREDFILE="$HOME/.config/bit-wifi/credentials"
 
 if [ ! -f "$CREDFILE" ]; then
-    echo "Credentials not found. Run ./setup.sh first."
-    exit 1
+    echo "Credentials not found."
+    ./setup.sh
 fi
 
 source "$CREDFILE"
 
 if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
-    echo "Credentials file is invalid. Run ./setup.sh again."
-    exit 1
+    echo "Credentials file is invalid."
+    ./setup.sh
 fi
 
 do_deauth() {

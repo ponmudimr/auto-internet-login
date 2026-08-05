@@ -30,7 +30,7 @@ A lightweight script that automates the entire flow into **one command** (Linux)
 git clone https://github.com/ponmudimr/auto-internet-login.git
 cd auto-internet-login
 chmod +x setup.sh nlogin.sh
-./setup.sh
+./nlogin.sh
 ```
 
 Enter your WiFi credentials once when prompted. Open a new terminal (or run `source ~/.bashrc`), then run `nlogin` from anywhere.
@@ -83,7 +83,7 @@ chmod +x setup.sh nlogin.sh
 **Step 6: Run setup**
 
 ```bash
-./setup.sh
+./nlogin.sh
 ```
 
 Enter your BIT WiFi username and password when asked (your password won't show as you type — that's normal, just type it and press Enter).

@@ -15,4 +15,3 @@ CREDEOF
 chmod 600 ~/.config/bit-wifi/credentials
 
 echo "Credentials saved securely at ~/.config/bit-wifi/credentials"
-echo "You can now run ./nlogin.sh (or install it globally, see README)"
