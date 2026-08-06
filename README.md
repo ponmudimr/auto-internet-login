@@ -5,7 +5,7 @@
 **One command to reclaim your WiFi session — no more manual logout/login when switching devices.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-blue)](#)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20Android-blue)](#)
 [![Made for BIT Sathy](https://img.shields.io/badge/made%20for-BIT%20Sathy-orange)](#)
 
 </div>
@@ -18,7 +18,7 @@ Bannari Amman Institute of Technology's WiFi captive portal only allows **one ac
 
 ## The Fix
 
-A lightweight script that automates the entire flow into **one command** (Linux) or **one double-click** (Windows). It deauthenticates your other active session, logs in the current device, and confirms you're actually online.
+A lightweight script that automates the entire flow into **one tap/command** (Linux/Android) or **one double-click** (Windows). It deauthenticates your other active session, logs in the current device, and confirms you're actually online.
 
 ---
 
@@ -34,6 +34,44 @@ chmod +x setup.sh nlogin.sh
 ```
 
 Enter your WiFi credentials once when prompted. Open a new terminal (or run `source ~/.bashrc`), then run `nlogin` from anywhere.
+
+---
+
+### 📱 Android (via Termux)
+
+**Step 1: Install Termux & Termux:Widget**
+
+- Install **Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) or [GitHub Releases](https://github.com/termux/termux-app/releases) *(do not use the Play Store version as it is deprecated)*.
+- *(Optional for 1-tap Home Screen shortcut)* Install **Termux:Widget** from [F-Droid](https://f-droid.org/en/packages/com.termux.widget/).
+
+**Step 2: Install required packages & Clone repo**
+
+Open Termux and run:
+
+```bash
+pkg update && pkg install -y git curl bash
+git clone https://github.com/ponmudimr/auto-internet-login.git
+cd auto-internet-login
+sed -i 's/\r$//' nlogin.sh setup.sh
+chmod +x setup.sh nlogin.sh
+./setup.sh
+```
+
+Enter your BIT WiFi credentials when prompted.
+
+**Step 3: Run anytime or add Home Screen Widget**
+
+- **Run from Termux command line:**
+  ```bash
+  ./nlogin.sh
+  ```
+- **1-Tap Home Screen Widget (Recommended):**
+  ```bash
+  mkdir -p ~/.shortcuts
+  cp ~/auto-internet-login/nlogin.sh ~/.shortcuts/BIT_WiFi_Login.sh
+  chmod +x ~/.shortcuts/BIT_WiFi_Login.sh
+  ```
+  Then, add the **Termux:Widget** widget to your Android Home Screen. Tapping `BIT_WiFi_Login.sh` will login and deauth instantly!
 
 ---
 
