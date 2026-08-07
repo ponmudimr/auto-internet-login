@@ -6,16 +6,29 @@
 PORTAL="http://172.16.0.200:2280"
 CREDFILE="$HOME/.config/bit-wifi/credentials"
 
+run_setup() {
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -f "$SCRIPT_DIR/setup.sh" ]; then
+        "$SCRIPT_DIR/setup.sh"
+    elif command -v setup.sh >/dev/null 2>&1; then
+        setup.sh
+    else
+        echo "Run setup.sh first to configure credentials."
+        exit 1
+    fi
+}
+
 if [ ! -f "$CREDFILE" ]; then
-    echo "Credentials not found. Run ./setup.sh first."
-    exit 1
+    echo "Credentials not found. Running setup..."
+    run_setup
 fi
 
-source "$CREDFILE"
+source "$CREDFILE" 2>/dev/null
 
 if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
-    echo "Credentials file is invalid. Run ./setup.sh again."
-    exit 1
+    echo "Credentials file is invalid. Running setup..."
+    run_setup
+    source "$CREDFILE"
 fi
 
 do_deauth() {
