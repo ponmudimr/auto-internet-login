@@ -30,10 +30,20 @@ A lightweight script that automates the entire flow into **one command** (Linux)
 git clone https://github.com/ponmudimr/auto-internet-login.git
 cd auto-internet-login
 chmod +x setup.sh nlogin.sh
-./nlogin.sh
+./setup.sh
 ```
 
-Enter your WiFi credentials once when prompted. Open a new terminal (or run `source ~/.bashrc`), then run `nlogin` from anywhere.
+- Enter your BIT WiFi credentials once when prompted during setup.
+- Open a new terminal (or run `source ~/.bashrc`), then run `nlogin` from anywhere.
+
+#### 🔄 How to Change Username & Password
+
+If you update your credentials or switch accounts:
+- **Option 1 (Recommended)**: Run setup again by executing `./setup.sh` (or `setup.sh` from anywhere in your terminal).
+- **Option 2 (Manual Edit)**: Directly edit the saved credentials file:
+  ```bash
+  nano ~/.config/bit-wifi/credentials
+  ```
 
 ---
 
@@ -83,7 +93,7 @@ chmod +x setup.sh nlogin.sh
 **Step 6: Run setup**
 
 ```bash
-./nlogin.sh
+./setup.sh
 ```
 
 Enter your BIT WiFi username and password when asked (your password won't show as you type — that's normal, just type it and press Enter).
@@ -140,6 +150,4 @@ This tool only automates the same login form submission your browser already per
 
 If this saved you a few seconds today, consider ⭐ starring the repo.
 
-
 </div>
->>>>>>> origin/pr/1/head
