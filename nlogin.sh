@@ -26,9 +26,14 @@ fi
 source "$CREDFILE" 2>/dev/null
 
 if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
-    echo "Credentials file is invalid. Running setup..."
+    echo "Credentials missing or invalid. Running setup..."
     run_setup
-    source "$CREDFILE"
+    source "$CREDFILE" 2>/dev/null
+fi
+
+if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+    echo "Setup incomplete. Exiting."
+    exit 1
 fi
 
 do_deauth() {

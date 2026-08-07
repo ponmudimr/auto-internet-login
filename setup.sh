@@ -18,11 +18,12 @@ chmod 600 ~/.config/bit-wifi/credentials
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 chmod +x "$SCRIPT_DIR/nlogin.sh" "$SCRIPT_DIR/setup.sh"
 
-# Install nlogin globally into ~/.local/bin
+# Install nlogin and setup globally into ~/.local/bin
 INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$INSTALL_DIR"
 cp "$SCRIPT_DIR/nlogin.sh" "$INSTALL_DIR/nlogin"
-chmod +x "$INSTALL_DIR/nlogin"
+cp "$SCRIPT_DIR/setup.sh" "$INSTALL_DIR/setup.sh"
+chmod +x "$INSTALL_DIR/nlogin" "$INSTALL_DIR/setup.sh"
 
 # Ensure ~/.local/bin is in PATH if needed
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
