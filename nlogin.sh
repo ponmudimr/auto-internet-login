@@ -20,7 +20,7 @@ fi
 
 do_deauth() {
     echo "Deauthenticating old session..."
-    curl -s -X POST "$PORTAL/submit/del_old_user_session.php" \
+    curl -s --connect-timeout 10 -X POST "$PORTAL/submit/del_old_user_session.php" \
       --data-urlencode "pcomp=hotspot" \
       --data-urlencode "usrname=$USERNAME" \
       --data-urlencode "newpasswd=$PASSWORD" \
@@ -30,7 +30,7 @@ do_deauth() {
 
 do_login() {
     echo "Logging in as $USERNAME ..."
-    curl -s -X POST "$PORTAL/submit/user_login.php" \
+    curl -s --connect-timeout 10 -X POST "$PORTAL/submit/user_login.php" \
       --data-urlencode "usrname=$USERNAME" \
       --data-urlencode "newpasswd=$PASSWORD" \
       --data-urlencode "terms=on" \
@@ -44,7 +44,7 @@ do_deauth
 sleep 2
 do_login
 
-if curl -s -o /dev/null -w "%{http_code}" http://neverssl.com/ | grep -q "200"; then
+if curl -s --connect-timeout 5 -o /dev/null -w "%{http_code}" http://neverssl.com/ | grep -q "200"; then
     echo "Connected to the internet."
 else
     echo "Still not connected — check the portal manually."
