@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # One-time setup: saves your BIT WiFi credentials locally and sets up the nlogin command
 
 mkdir -p "$HOME/.config/bit-wifi"
@@ -93,12 +93,15 @@ else
 fi
 
 # Detect Termux environment for phone home screen shortcut (Termux:Widget)
-if [ -n "$PREFIX" ] && [ -d "$PREFIX" ]; then
+if [ -n "$PREFIX" ] || [ -d "/data/data/com.termux" ]; then
     echo ""
     echo "Android/Termux detected. Creating home screen shortcut..."
     SHORTCUT_DIR="$HOME/.shortcuts"
     mkdir -p "$SHORTCUT_DIR" 2>/dev/null
-    cp "$SCRIPT_DIR/nlogin.sh" "$SHORTCUT_DIR/nlogin" 2>/dev/null
+    cat << 'EOF' > "$SHORTCUT_DIR/nlogin"
+#!/usr/bin/env bash
+nlogin
+EOF
     chmod +x "$SHORTCUT_DIR/nlogin" 2>/dev/null
     echo "✅ Termux shortcut created at ~/.shortcuts/nlogin"
 fi

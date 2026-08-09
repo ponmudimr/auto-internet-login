@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # BIT WiFi Auto Login/Deauth Script
 # Usage: nlogin (or ./nlogin.sh)
 # Setup: run ./setup.sh first to save your credentials
