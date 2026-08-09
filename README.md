@@ -2,29 +2,39 @@
 
 # 🔐 BIT WiFi Auto Login
 
-**One command to reclaim your WiFi session — no more manual logout/login when switching devices.**
+**One command to log into BIT WiFi — no more manual logout/login when switching devices.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-blue)](#)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20Android-blue)](#)
 [![Made for BIT Sathy](https://img.shields.io/badge/made%20for-BIT%20Sathy-orange)](#)
 
 </div>
 
 ---
 
-## The Problem
+## ❓ The Problem
 
-Bannari Amman Institute of Technology's WiFi captive portal only allows **one active device per account**. Switching from laptop to phone (or vice versa) means manually opening the portal, logging out, and logging back in — every single time.
+Bannari Amman Institute of Technology's WiFi captive portal allows only **one active device per student account**. Switching from your phone to your laptop (or vice versa) means manually opening the login page, logging out your old device, and logging in again — every single time.
 
-## The Fix
+## 💡 The Fix
 
-A lightweight script that automates the entire flow into **one command** (Linux) or **one double-click** (Windows). It deauthenticates your other active session, logs in the current device, and confirms you're actually online.
+This tool automates the entire process into **one single command** (on Linux & Android) or **one double-click** on your Desktop (on Windows). It disconnects your old session, logs in your current device, and verifies that you are connected to the internet.
 
 ---
 
-## 🚀 Setup Guide
+## 🚀 Setup Guides
 
-### 🐧 Linux
+Choose your operating system below for quick, step-by-step instructions.
+
+---
+
+### 🐧 Option 1: Linux
+
+#### **Step 1: Open your Terminal**
+Press `Ctrl + Alt + T` on your keyboard to open a terminal window.
+
+#### **Step 2: Download and set up**
+Copy and paste these commands into your terminal, then press **Enter**:
 
 ```bash
 git clone https://github.com/ponmudimr/auto-internet-login.git
@@ -33,121 +43,123 @@ chmod +x setup.sh nlogin.sh
 ./setup.sh
 ```
 
-- Enter your BIT WiFi credentials once when prompted during setup.
-- Open a new terminal (or run `source ~/.bashrc`), then run `nlogin` from anywhere.
+#### **Step 3: Enter your credentials**
+When prompted, type your BIT WiFi username and password. *(Your password will not show characters on screen while typing — this is normal for security).*
 
-#### 🔄 How to Change Username & Password
+#### **Step 4: You're done!**
+Open a new terminal window (or run **`source ~/.bashrc`**). Now, whenever you need to connect to WiFi, simply type:
 
-If you update your credentials or switch accounts:
-- **Option 1 (Recommended)**: Run setup again by executing `./setup.sh` (or `setup.sh` from anywhere in your terminal).
-- **Option 2 (Manual Edit)**: Directly edit the saved credentials file:
+```bash
+nlogin
+```
+
+---
+
+### 🪟 Option 2: Windows (via Git Bash)
+
+#### **Step 1: Download & Install Git Bash**
+You need Git Bash to run the setup.
+
+- **Official Download:** [git-scm.com/download/win](https://git-scm.com/download/win)
+- **Direct Download Link:** [Git-2.55.0.3-64-bit.exe](https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.3/Git-2.55.0.3-64-bit.exe)
+
+Run the installer, click **Next** on all screens with default settings, and click **Install**.
+
+#### **Step 2: Open Git Bash**
+- Right-click anywhere on your **Desktop** → click **"Git Bash Here"**, OR
+- Open the Start Menu, search for **Git Bash**, and press **Enter**.
+
+#### **Step 3: Download and run setup**
+Copy and paste these exact commands into the black Git Bash window, then press **Enter**:
+
+```bash
+cd ~/Desktop
+git clone https://github.com/ponmudimr/auto-internet-login.git
+cd auto-internet-login
+sed -i 's/\r$//' nlogin.sh setup.sh
+chmod +x setup.sh nlogin.sh
+./setup.sh
+```
+
+Enter your BIT WiFi username and password when prompted.
+
+#### **Step 4: Connect anytime with one double-click!**
+Setup automatically creates a shortcut named **`BIT WiFi Auto Login`** right on your **Desktop**.
+
+From now on, whenever you want to connect to WiFi, simply **double-click the Desktop shortcut icon**. A small window will pop up, connect you to the WiFi, and display a success message!
+
+---
+
+### 📱 Option 3: Android (via Termux)
+
+#### **Step 1: Install Termux**
+Download and install the **Termux** app from **[F-Droid](https://f-droid.org/packages/com.termux/)** *(Recommended: do not use the Google Play Store version as it is outdated)*.
+
+#### **Step 2: Run the setup commands**
+Open the Termux app on your phone, copy-paste the following commands, and press **Enter**:
+
+```bash
+pkg update && pkg install git -y
+git clone https://github.com/ponmudimr/auto-internet-login.git
+cd auto-internet-login
+chmod +x setup.sh nlogin.sh
+./setup.sh
+```
+
+Enter your BIT WiFi username and password when prompted.
+
+#### **Step 3: Connect anytime!**
+Setup installs the `nlogin` command globally in Termux. Whenever you need to connect, simply open Termux and type:
+
+```bash
+nlogin
+```
+
+---
+
+## 🔄 Changing Your Username or Password
+
+If you change your portal password or switch accounts:
+- **Option 1 (Easiest)**: Run setup again by typing **`./setup.sh`** inside the folder (or **`nlogin`** after deleting your credentials).
+- **Option 2 (Manual Edit)**: Open the saved credentials file in a text editor:
   ```bash
   nano ~/.config/bit-wifi/credentials
   ```
 
 ---
 
-### 🪟 Windows — Step by Step
+## 🔒 Security & Privacy
 
-**Step 1: Install Git for Windows**
-
-You need Git Bash, which comes bundled with Git for Windows.
-
-- **Official method (recommended):** Go to [git-scm.com/download/win](https://git-scm.com/download/win) and click the auto-download link at the top.
-- **Alternate direct download:** [Git-2.55.0.3-64-bit.exe](https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.3/Git-2.55.0.3-64-bit.exe)
-
-Once downloaded, double-click the `.exe` file to start the installer.
-
-**Step 2: Run through the installer**
-
-Click **Next** on every screen, keeping all default options selected. On the "Adjusting your PATH environment" screen, make sure **"Git from the command line and also from 3rd-party software"** is selected (it's the default). Click **Install**, then **Finish**.
-
-**Step 3: Open Git Bash**
-
-There are two easy ways:
-
-- **Right-click method:** Right-click anywhere on your **Desktop** → click **"Git Bash Here"** from the menu.
-- **Start Menu method:** Click the **Windows Start button** (bottom-left) → type `Git Bash` → press **Enter**.
-
-A black terminal window will open — this is Git Bash. This is where you'll type all the commands below.
-
-**Step 4: Clone the repo onto your Desktop**
-
-Copy-paste this into the Git Bash window and press Enter:
-
-```bash
-cd ~/Desktop
-git clone https://github.com/ponmudimr/auto-internet-login.git
-cd auto-internet-login
-```
-
-This creates an `auto-internet-login` folder right on your Desktop, so it's easy to find.
-
-**Step 5: Prepare the scripts**
-
-```bash
-sed -i 's/\r$//' nlogin.sh setup.sh
-chmod +x setup.sh nlogin.sh
-```
-
-**Step 6: Run setup**
-
-```bash
-./setup.sh
-```
-
-Enter your BIT WiFi username and password when asked (your password won't show as you type — that's normal, just type it and press Enter).
-
-**Step 7: You're done — connect anytime**
-
-- Open **File Explorer → Desktop → auto-internet-login**
-- Double-click **`nlogin.bat`**
-- A window will open, run the login, and show you the result
-
-> 💡 **Tip:** Right-click `nlogin.bat` → *Send to* → *Desktop (create shortcut)*. Now you have a shortcut icon directly on your Desktop — no need to open the folder each time.
+- **Your credentials stay local**: Username and password are stored **only on your device** at `~/.config/bit-wifi/credentials` with locked file permissions (`chmod 600`).
+- **No data is shared**: Credentials are never sent anywhere except directly to BIT Sathy's portal (`172.16.0.200`).
+- **Safe credential storage**: Special characters in passwords (like `$`, `#`, `!`, `"`, `\`) are handled safely without code execution risk.
 
 ---
 
-## ⚙️ How It Works
+## ⚙️ How It Works (For Tech Curious)
 
-The script replicates the exact HTTP requests your browser sends to the captive portal — captured and reverse-engineered via Chrome DevTools' Network tab:
-
-1. **Deauth** → `POST /submit/del_old_user_session.php` — kills the session on your other device
-2. **Login** → `POST /submit/user_login.php` — logs in the current device
-3. **Verify** → checks real internet connectivity before reporting success
-
-No browser automation, no third-party dependencies — just `curl`.
+The script sends standard web requests directly to the captive portal server (`172.16.0.200:2280`):
+1. **Deauthenticate**: Sends a POST request to `/submit/del_old_user_session.php` to clear your active session on other devices.
+2. **Login**: Sends a POST request to `/submit/user_login.php` to log in your current device.
+3. **Verify & Error Handling**: Checks HTTP status codes and portal response text for errors (e.g. wrong credentials, offline network, portal maintenance), then tests internet access via `http://neverssl.com/`.
 
 ---
 
-## 🔒 Security
+## 🙋 Need Help?
 
-- Credentials are stored **only on your machine**, with file permissions locked to your user
-- Nothing is ever committed to this repo or transmitted anywhere except BIT's own WiFi portal
-- Review the code yourself — it's a single readable bash script
-
----
-
-## 🤝 Contributing
-
-This is a small tool built for the BIT community, and it gets better with more hands on it. Ideas for contributions:
-
-- Native PowerShell version (no Git Bash dependency)
-- macOS support
-- Auto-run on WiFi connect (NetworkManager / systemd hook)
-
-Issues and PRs are welcome — feel free to fork and improve.
+If you run into any issues or something isn't working as expected:
+- Please open a **[GitHub Issue](https://github.com/ponmudimr/auto-internet-login/issues)** with details about your operating system and the error message shown.
 
 ---
 
 ## ⚠️ Disclaimer
 
-This tool only automates the same login form submission your browser already performs. Use it with your own credentials, in accordance with your institution's IT policies.
+This tool simply automates the same web login form that your browser submits. Use it with your own credentials in accordance with your institution's network usage policies.
 
 ---
 
 <div align="center">
 
-If this saved you a few seconds today, consider ⭐ starring the repo.
+If this saved you time, consider giving this repository a ⭐ **Star**!
 
 </div>
