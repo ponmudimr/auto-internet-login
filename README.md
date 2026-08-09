@@ -18,7 +18,7 @@ Bannari Amman Institute of Technology's WiFi captive portal allows only **one ac
 
 ## 💡 The Fix
 
-This tool automates the entire process into **one single command** (on Linux & Android) or **one double-click** on your Desktop (on Windows). It disconnects your old session, logs in your current device, and verifies that you are connected to the internet.
+This tool automates the entire process into **one single command** (on Linux & Android) or **one double-click / home screen shortcut** (on Windows & Android phones). It disconnects your old session, logs in your current device, and verifies that you are connected to the internet.
 
 ---
 
@@ -108,12 +108,18 @@ chmod +x setup.sh nlogin.sh
 
 Enter your BIT WiFi username and password when prompted.
 
-#### **Step 3: Connect anytime!**
-Setup installs the `nlogin` command globally in Termux. Whenever you need to connect, simply open Termux and type:
+#### **Step 3: Connect anytime via Terminal or Home Screen Shortcut!**
 
-```bash
-nlogin
-```
+- **In Termux Terminal**: Simply open Termux and type:
+  ```bash
+  nlogin
+  ```
+
+- **📲 1-Tap Home Screen Shortcut (Optional)**:
+  Setup automatically creates a Termux shortcut at `~/.shortcuts/nlogin`.
+  1. Install **[Termux:Widget](https://f-droid.org/packages/com.termux.widget/)** from F-Droid.
+  2. Long-press any empty space on your phone's home screen → select **Widgets**.
+  3. Find **Termux:Widget**, drag it to your home screen, and tap **`nlogin`** anytime to log in with 1 tap!
 
 ---
 

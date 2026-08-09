@@ -92,6 +92,17 @@ else
     echo "✅ $INSTALL_DIR is already in your PATH."
 fi
 
+# Detect Termux environment for phone home screen shortcut (Termux:Widget)
+if [ -n "$PREFIX" ] && [ -d "$PREFIX" ]; then
+    echo ""
+    echo "Android/Termux detected. Creating home screen shortcut..."
+    SHORTCUT_DIR="$HOME/.shortcuts"
+    mkdir -p "$SHORTCUT_DIR" 2>/dev/null
+    cp "$SCRIPT_DIR/nlogin.sh" "$SHORTCUT_DIR/nlogin" 2>/dev/null
+    chmod +x "$SHORTCUT_DIR/nlogin" 2>/dev/null
+    echo "✅ Termux shortcut created at ~/.shortcuts/nlogin"
+fi
+
 # Detect Windows environment (Git Bash / MSYS / MINGW) to create Desktop shortcut
 IS_WINDOWS=0
 case "$(uname -s 2>/dev/null)" in
