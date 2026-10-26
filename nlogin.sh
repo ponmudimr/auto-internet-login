@@ -97,12 +97,30 @@ DEAUTH_HTTP_CODE=$(printf '%s' "$PASSWORD" | curl -s -w "%{http_code}" --connect
 CURL_DEAUTH_EXIT=$?
 
 if [ $CURL_DEAUTH_EXIT -ne 0 ] || [ "$DEAUTH_HTTP_CODE" = "000" ] || [ -z "$DEAUTH_HTTP_CODE" ]; then
-    echo "❌ Network Error: Unable to reach BIT WiFi portal at 172.16.0.200:2280."
-    echo "   Please make sure you are connected to the BIT WiFi network."
+    echo "❌ Network Error: Unable to reach BIT WiFi portal at 172.16.0.200:2280." >&2
+    echo "   Please make sure you are connected to the BIT WiFi network." >&2
     exit 1
 fi
 
-sleep 1
+if [ "$DEAUTH_HTTP_CODE" -ne 200 ] 2>/dev/null; then
+    echo "❌ Portal Error: Deauth endpoint returned HTTP status $DEAUTH_HTTP_CODE." >&2
+    exit 1
+fi
+
+DEAUTH_BODY_LOWER=$(tr '[:upper:]' '[:lower:]' < "$TEMP_RESP" 2>/dev/null)
+if printf '%s' "$DEAUTH_BODY_LOWER" | grep -qE "invalid|incorrect|authentication failed|access denied|user not found"; then
+    echo "❌ Login Rejected: Invalid username or password." >&2
+    echo "   Please run setup.sh (or ./setup.sh) to update your credentials." >&2
+    exit 2
+fi
+
+if printf '%s' "$DEAUTH_BODY_LOWER" | grep -q "deleted 1 old session"; then
+    echo "   ↳ Cleared 1 active session."
+elif printf '%s' "$DEAUTH_BODY_LOWER" | grep -q "deleted 0 old session"; then
+    echo "   ↳ No previous active session found."
+fi
+
+sleep 0.3 2>/dev/null || sleep 1
 
 # Step 2: Login current device
 echo "[2/3] Logging in as $USERNAME..."
@@ -116,23 +134,29 @@ LOGIN_HTTP_CODE=$(printf '%s' "$PASSWORD" | curl -s -w "%{http_code}" --connect-
 CURL_LOGIN_EXIT=$?
 
 if [ $CURL_LOGIN_EXIT -ne 0 ] || [ "$LOGIN_HTTP_CODE" = "000" ] || [ -z "$LOGIN_HTTP_CODE" ]; then
-    echo "❌ Network Error: Portal connection lost during login."
-    echo "   Please check your WiFi connection."
+    echo "❌ Network Error: Portal connection lost during login." >&2
+    echo "   Please check your WiFi connection." >&2
     exit 1
 fi
 
 if [ "$LOGIN_HTTP_CODE" -ne 200 ] 2>/dev/null; then
-    echo "❌ Portal Error: Portal returned HTTP status $LOGIN_HTTP_CODE."
-    echo "   The portal server might be down or undergoing maintenance."
+    echo "❌ Portal Error: Portal returned HTTP status $LOGIN_HTTP_CODE." >&2
+    echo "   The portal server might be down or undergoing maintenance." >&2
     exit 1
 fi
 
 LOGIN_BODY=$(cat "$TEMP_RESP" 2>/dev/null)
-LOGIN_BODY_LOWER=$(echo "$LOGIN_BODY" | tr '[:upper:]' '[:lower:]')
+LOGIN_BODY_LOWER=$(printf '%s' "$LOGIN_BODY" | tr '[:upper:]' '[:lower:]')
 
-if echo "$LOGIN_BODY_LOWER" | grep -qE "invalid|incorrect|authentication failed|access denied|user not found"; then
-    echo "❌ Login Rejected: Invalid username or password."
-    echo "   Please run setup.sh (or ./setup.sh) to update your credentials."
+if printf '%s' "$LOGIN_BODY_LOWER" | grep -qE "invalid|incorrect|authentication failed|access denied|user not found"; then
+    echo "❌ Login Rejected: Invalid username or password." >&2
+    echo "   Please run setup.sh (or ./setup.sh) to update your credentials." >&2
+    exit 2
+fi
+
+if printf '%s' "$LOGIN_BODY_LOWER" | grep -q "hide_popup('error'"; then
+    PORTAL_ERR=$(printf '%s' "$LOGIN_BODY" | sed -n "s/.*hide_popup('error','\([^']*\)').*/\1/p" | head -n 1)
+    echo "❌ Portal Error: ${PORTAL_ERR:-Login rejected by captive portal.}" >&2
     exit 1
 fi
 
