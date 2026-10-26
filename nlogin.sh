@@ -52,6 +52,15 @@ load_credentials() {
     fi
 }
 
+check_dependencies() {
+    if ! command -v curl >/dev/null 2>&1; then
+        echo "❌ Error: 'curl' is not installed. Please install curl and try again." >&2
+        exit 1
+    fi
+}
+
+check_dependencies
+
 if [ ! -f "$CREDFILE" ]; then
     echo "Credentials not found. Running setup..."
     run_setup
@@ -80,10 +89,10 @@ echo "Connecting to BIT WiFi portal..."
 
 # Step 1: Deauthenticate previous active session
 echo "[1/3] Deauthenticating old session for $USERNAME..."
-DEAUTH_HTTP_CODE=$(curl -s -w "%{http_code}" --connect-timeout 10 -X POST "$PORTAL/submit/del_old_user_session.php" \
+DEAUTH_HTTP_CODE=$(printf '%s' "$PASSWORD" | curl -s -w "%{http_code}" --connect-timeout 8 --max-time 15 -X POST "$PORTAL/submit/del_old_user_session.php" \
   --data-urlencode "pcomp=hotspot" \
   --data-urlencode "usrname=$USERNAME" \
-  --data-urlencode "newpasswd=$PASSWORD" \
+  --data-urlencode "newpasswd@-" \
   -o "$TEMP_RESP" 2>/dev/null)
 CURL_DEAUTH_EXIT=$?
 
@@ -97,9 +106,9 @@ sleep 1
 
 # Step 2: Login current device
 echo "[2/3] Logging in as $USERNAME..."
-LOGIN_HTTP_CODE=$(curl -s -w "%{http_code}" --connect-timeout 10 -X POST "$PORTAL/submit/user_login.php" \
+LOGIN_HTTP_CODE=$(printf '%s' "$PASSWORD" | curl -s -w "%{http_code}" --connect-timeout 8 --max-time 15 -X POST "$PORTAL/submit/user_login.php" \
   --data-urlencode "usrname=$USERNAME" \
-  --data-urlencode "newpasswd=$PASSWORD" \
+  --data-urlencode "newpasswd@-" \
   --data-urlencode "terms=on" \
   --data-urlencode "page_sid=internal" \
   --data-urlencode "org_url=http://172.16.0.200/" \
