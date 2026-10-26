@@ -134,7 +134,25 @@ Once set up, you can run `nlogin` from anywhere with the following options:
 | `nlogin --logout` (or `-d`) | Disconnect (deauthenticate) your active session without logging back in |
 | `nlogin --keepalive [sec]` (or `-k`) | Monitor connection every `sec` seconds (default `60`) and auto-reconnect if dropped |
 | `nlogin --setup` (or `-s`) | Configure or update your saved BIT WiFi username and password |
+| `nlogin --update` (or `-u`) | Update `nlogin` to the latest version from GitHub |
 | `nlogin --help` (or `-h`) | Display usage instructions and examples |
+
+---
+
+## ⬆️ Updating to the Latest Version
+
+Updating keeps your saved credentials intact — **you do not need to re-enter your username or password**.
+
+- **Linux & Android (Termux)** — copy and paste this 1-line command in your terminal:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/ponmudimr/auto-internet-login/main/nlogin.sh -o "${PREFIX:-$HOME/.local}/bin/nlogin" && chmod +x "${PREFIX:-$HOME/.local}/bin/nlogin"
+  ```
+  *(Once updated, you can update anytime in the future simply by running **`nlogin --update`**!)*
+
+- **Windows (Git Bash)** — open Git Bash and run:
+  ```bash
+  cd ~/Desktop/auto-internet-login && git pull
+  ```
 
 ---
 
