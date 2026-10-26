@@ -18,6 +18,18 @@ run_setup() {
     fi
 }
 
+strip_surrounding_quotes() {
+    local val="$1"
+    if [ "${#val}" -ge 2 ]; then
+        if [ "${val:0:1}" = '"' ] && [ "${val: -1}" = '"' ]; then
+            val="${val:1:${#val}-2}"
+        elif [ "${val:0:1}" = "'" ] && [ "${val: -1}" = "'" ]; then
+            val="${val:1:${#val}-2}"
+        fi
+    fi
+    printf '%s' "$val"
+}
+
 load_credentials() {
     USERNAME=""
     PASSWORD=""
@@ -29,13 +41,20 @@ load_credentials() {
                 PASSWORD=*) PASSWORD="${line#PASSWORD=}" ;;
             esac
         done < "$CREDFILE"
+
+        # Backward compatibility: earlier setup.sh wrapped values in literal quotes
+        local clean_user
+        clean_user="$(strip_surrounding_quotes "$USERNAME")"
+        if [ "$clean_user" != "$USERNAME" ]; then
+            USERNAME="$clean_user"
+            PASSWORD="$(strip_surrounding_quotes "$PASSWORD")"
+        fi
     fi
 }
 
 if [ ! -f "$CREDFILE" ]; then
     echo "Credentials not found. Running setup..."
     run_setup
-    load_credentials
 fi
 
 load_credentials
