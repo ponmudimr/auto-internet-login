@@ -1,20 +1,24 @@
 @echo off
 title BIT WiFi Auto Login
-setlocal enabledelayedexpansion
 
-set "GIT_BASH=C:\Program Files\Git\bin\bash.exe"
+set "GIT_BASH="
 
-if not exist "!GIT_BASH!" (
-    if exist "C:\Program Files (x86)\Git\bin\bash.exe" (
-        set "GIT_BASH=C:\Program Files (x86)\Git\bin\bash.exe"
-    ) else (
-        for /f "tokens=*" %%i in ('where bash 2^>nul') do (
-            set "GIT_BASH=%%i"
+if exist "%ProgramFiles%\Git\bin\bash.exe" (
+    set "GIT_BASH=%ProgramFiles%\Git\bin\bash.exe"
+) else if exist "%ProgramFiles(x86)%\Git\bin\bash.exe" (
+    set "GIT_BASH=%ProgramFiles(x86)%\Git\bin\bash.exe"
+) else if exist "%LocalAppData%\Programs\Git\bin\bash.exe" (
+    set "GIT_BASH=%LocalAppData%\Programs\Git\bin\bash.exe"
+) else (
+    for /f "delims=" %%i in ('where bash.exe 2^>nul') do (
+        echo "%%i" | findstr /i /c:"\System32\bash.exe" >nul
+        if errorlevel 1 (
+            if not defined GIT_BASH set "GIT_BASH=%%i"
         )
     )
 )
 
-if not exist "!GIT_BASH!" (
+if not defined GIT_BASH (
     echo [ERROR] Git Bash was not found on your computer.
     echo Please download and install Git for Windows from https://git-scm.com/download/win
     echo.
@@ -22,10 +26,7 @@ if not exist "!GIT_BASH!" (
     exit /b 1
 )
 
-set "SCRIPT_DIR=%~dp0"
-set "SCRIPT_DIR=%SCRIPT_DIR:\=/%"
-
-"!GIT_BASH!" -c "cd '%SCRIPT_DIR%' && ./nlogin.sh"
+"%GIT_BASH%" "%~dp0nlogin.sh" %*
 
 echo.
 echo Press any key to exit...
