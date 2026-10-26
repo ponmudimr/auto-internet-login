@@ -123,10 +123,25 @@ Enter your BIT WiFi username and password when prompted.
 
 ---
 
+## 🧰 Commands & Options
+
+Once set up, you can run `nlogin` from anywhere with the following options:
+
+| Command | Description |
+|---------|-------------|
+| `nlogin` | Deauthenticate old session, log in current device, and verify internet |
+| `nlogin --status` (or `-c`) | Check if BIT WiFi portal and internet connection are reachable |
+| `nlogin --logout` (or `-d`) | Disconnect (deauthenticate) your active session without logging back in |
+| `nlogin --keepalive [sec]` (or `-k`) | Monitor connection every `sec` seconds (default `60`) and auto-reconnect if dropped |
+| `nlogin --setup` (or `-s`) | Configure or update your saved BIT WiFi username and password |
+| `nlogin --help` (or `-h`) | Display usage instructions and examples |
+
+---
+
 ## 🔄 Changing Your Username or Password
 
 If you change your portal password or switch accounts:
-- **Option 1 (Easiest)**: Run setup again by typing **`./setup.sh`** inside the folder (or **`nlogin`** after deleting your credentials).
+- **Option 1 (Easiest)**: Run **`nlogin --setup`** from any terminal (or **`./setup.sh`** inside the repository folder).
 - **Option 2 (Manual Edit)**: Open the saved credentials file in a text editor:
   ```bash
   nano ~/.config/bit-wifi/credentials
@@ -136,18 +151,19 @@ If you change your portal password or switch accounts:
 
 ## 🔒 Security & Privacy
 
-- **Your credentials stay local**: Username and password are stored **only on your device** at `~/.config/bit-wifi/credentials` with locked file permissions (`chmod 600`).
+- **Your credentials stay local**: Username and password are stored **only on your device** at `~/.config/bit-wifi/credentials` with locked file permissions (`chmod 600` via `umask 077`).
+- **Hidden from process list**: Passwords are piped to `curl` via standard input (`--data-urlencode newpasswd@-`) so they are never exposed in process tables (`ps aux`).
 - **No data is shared**: Credentials are never sent anywhere except directly to BIT Sathy's portal (`172.16.0.200`).
-- **Safe credential storage**: Special characters in passwords (like `$`, `#`, `!`, `"`, `\`) are handled safely without code execution risk.
+- **Safe credential storage**: Special characters in passwords (like `$`, `#`, `!`, `"`, `\`, `` ` ``) are handled verbatim without shell expansion or code execution risk.
 
 ---
 
 ## ⚙️ How It Works (For Tech Curious)
 
 The script sends standard web requests directly to the captive portal server (`172.16.0.200:2280`):
-1. **Deauthenticate**: Sends a POST request to `/submit/del_old_user_session.php` to clear your active session on other devices.
+1. **Deauthenticate**: Sends a POST request to `/submit/del_old_user_session.php` to clear your active session on other devices and validates that credentials are accepted.
 2. **Login**: Sends a POST request to `/submit/user_login.php` to log in your current device.
-3. **Verify & Error Handling**: Checks HTTP status codes and portal response text for errors (e.g. wrong credentials, offline network, portal maintenance), then tests internet access via `http://neverssl.com/`.
+3. **Verify & Error Handling**: Checks HTTP status codes and portal response text for errors (e.g. wrong credentials, offline network, portal maintenance), then verifies internet access via low-latency HTTP `204` captive-portal endpoints (`connectivitycheck.gstatic.com/generate_204`, `cp.cloudflare.com/generate_204`, with `neverssl.com` fallback).
 
 ---
 
