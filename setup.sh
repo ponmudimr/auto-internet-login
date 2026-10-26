@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
 # One-time setup: saves your BIT WiFi credentials locally and sets up the nlogin command
 
-mkdir -p "$HOME/.config/bit-wifi"
-CREDFILE="$HOME/.config/bit-wifi/credentials"
+CRED_DIR="$HOME/.config/bit-wifi"
+CREDFILE="$CRED_DIR/credentials"
+mkdir -p "$CRED_DIR"
+chmod 700 "$CRED_DIR" 2>/dev/null || true
 
 echo "=== BIT WiFi Auto Login Setup ==="
 echo ""
-read -p "Enter your BIT WiFi username (e.g. yourname.ec25@bitsathy.ac.in): " USERNAME
-read -s -p "Enter your BIT WiFi password: " PASSWORD
+read -r -p "Enter your BIT WiFi username (e.g. yourname.ec25@bitsathy.ac.in): " USERNAME
+read -r -s -p "Enter your BIT WiFi password: " PASSWORD
 echo ""
 echo ""
 
 if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
-    echo "Error: Username and password cannot be empty."
+    echo "❌ Error: Username and password cannot be empty." >&2
     exit 1
 fi
 
-cat << EOF > "$CREDFILE"
-USERNAME=$USERNAME
-PASSWORD=$PASSWORD
-EOF
-
-chmod 600 "$CREDFILE"
+(
+    umask 077
+    printf 'USERNAME=%s\nPASSWORD=%s\n' "$USERNAME" "$PASSWORD" > "$CREDFILE"
+)
+chmod 600 "$CREDFILE" 2>/dev/null || true
 echo "✅ Credentials saved securely at ~/.config/bit-wifi/credentials"
 
 # Make local repository scripts executable
