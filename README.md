@@ -130,10 +130,12 @@ Once set up, you can run `nlogin` from anywhere with the following options:
 | Command | Description |
 |---------|-------------|
 | `nlogin` | Deauthenticate old session, log in current device, and verify internet |
+| `nlogin -ls` (or `--list`) | Show how many profiles are saved and list all accounts |
+| `nlogin -switch [profile]` (or `-s`) | Switch to another saved profile (or open interactive menu to switch/add/delete) and log in |
+| `nlogin --setup` (or `-a`, `--add`) | Add a new profile or update saved BIT WiFi credentials |
 | `nlogin --status` (or `-c`) | Check if BIT WiFi portal and internet connection are reachable |
 | `nlogin --logout` (or `-d`) | Disconnect (deauthenticate) your active session without logging back in |
 | `nlogin --keepalive [sec]` (or `-k`) | Monitor connection every `sec` seconds (default `60`) and auto-reconnect if dropped |
-| `nlogin --setup` (or `-s`) | Configure or update your saved BIT WiFi username and password |
 | `nlogin --update` (or `-u`) | Update `nlogin` to the latest version from GitHub |
 | `nlogin --help` (or `-h`) | Display usage instructions and examples |
 
@@ -156,14 +158,13 @@ Updating keeps your saved credentials intact — **you do not need to re-enter y
 
 ---
 
-## 🔄 Changing Your Username or Password
+## 🔄 Switching Profiles or Changing Credentials
 
-If you change your portal password or switch accounts:
-- **Option 1 (Easiest)**: Run **`nlogin --setup`** from any terminal (or **`./setup.sh`** inside the repository folder).
-- **Option 2 (Manual Edit)**: Open the saved credentials file in a text editor:
-  ```bash
-  nano ~/.config/bit-wifi/credentials
-  ```
+You can save multiple BIT WiFi accounts and switch between them anytime:
+- **List saved profiles**: Run **`nlogin -ls`** to see how many profiles are saved and which one is active.
+- **Switch or add a profile (Interactive)**: Run **`nlogin -switch`** (or **`nlogin -s`**) to pick a saved account, add a new account (`n`), or delete one (`d`).
+- **Quick switch by number or name**: Run **`nlogin -switch 2`** or **`nlogin -switch friend`** to switch and log in immediately.
+- **Add/update credentials directly**: Run **`nlogin --setup`** (or **`./setup.sh`** inside the repository folder).
 
 ---
 

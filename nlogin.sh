@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # BIT WiFi Auto Login / Deauth Script
-# Usage: nlogin [--setup | --logout | --status | --keepalive [sec] | --update | --help]
+# Usage: nlogin [-switch [profile] | -ls | --setup | --logout | --status | --keepalive [sec] | --update | --help]
 # Setup: run ./setup.sh (or nlogin --setup) to save your credentials
 
 PORTAL="http://172.16.0.200:2280"
 RAW_UPDATE_URL="https://raw.githubusercontent.com/ponmudimr/auto-internet-login/main/nlogin.sh"
 CRED_DIR="$HOME/.config/bit-wifi"
 CREDFILE="$CRED_DIR/credentials"
+PROFILES_DIR="$CRED_DIR/profiles"
 
 show_help() {
     cat << 'EOF'
@@ -15,21 +16,27 @@ Usage: nlogin [OPTION]
 Automates BIT Sathy WiFi captive portal deauthentication, login, and verification.
 
 Options:
-  (no option)            Deauthenticate old session, log in, and verify internet
-  -s, --setup            Configure or update your BIT WiFi credentials
-  -d, --logout           Disconnect (deauthenticate) active session without logging in
-  -c, --status           Check current internet and captive portal connection status
-  -k, --keepalive [SEC]  Monitor connection every SEC seconds (default: 60) and auto-reconnect
-  -u, --update           Update nlogin to the latest version from GitHub
-  -h, --help             Show this help message and exit
+  (no option)              Deauthenticate old session, log in, and verify internet
+  -s, -switch, --switch [P] Switch to another saved profile (or interactive menu) and log in
+  -ls, -l, --list          Show saved profiles count and list all profiles
+  -a, --add, --setup       Add a new profile or update saved BIT WiFi credentials
+  -d, --logout             Disconnect (deauthenticate) active session without logging in
+  -c, --status             Check current internet and captive portal connection status
+  -k, --keepalive [SEC]    Monitor connection every SEC seconds (default: 60) and auto-reconnect
+  -u, --update             Update nlogin to the latest version from GitHub
+  -h, --help               Show this help message and exit
 
 Examples:
-  nlogin                 Connect to BIT WiFi
-  nlogin --setup         Update saved username and password
-  nlogin --logout        Log out active device session
-  nlogin --status        Check if internet and portal are reachable
-  nlogin --keepalive 30  Auto-reconnect every 30 seconds if connection drops
-  nlogin --update        Update nlogin to the latest version
+  nlogin                   Connect to BIT WiFi with active profile
+  nlogin -ls               List all saved profiles and show active profile
+  nlogin -switch           Open interactive menu to switch or add a profile
+  nlogin -switch 2         Switch directly to profile #2 and log in
+  nlogin -switch friend    Switch to profile matching 'friend' and log in
+  nlogin --setup           Add or update a BIT WiFi account
+  nlogin --logout          Log out active device session
+  nlogin --status          Check if internet and portal are reachable
+  nlogin --keepalive 30    Auto-reconnect every 30 seconds if connection drops
+  nlogin --update          Update nlogin to the latest version
 EOF
 }
 
@@ -41,8 +48,10 @@ check_dependencies() {
 }
 
 prompt_credentials() {
-    mkdir -p "$CRED_DIR"
-    chmod 700 "$CRED_DIR" 2>/dev/null || true
+    mkdir -p "$CRED_DIR" "$PROFILES_DIR"
+    chmod 700 "$CRED_DIR" "$PROFILES_DIR" 2>/dev/null || true
+
+    sync_active_to_profiles
 
     echo "=== BIT WiFi Credential Setup ==="
     echo ""
@@ -58,12 +67,252 @@ prompt_credentials() {
         return 1
     fi
 
+    save_profile_credentials "$input_user" "$input_pass"
+    echo "✅ Profile '$input_user' saved and set as active."
+}
+
+profile_safe_name() {
+    printf '%s' "$1" | tr -c 'a-zA-Z0-9._@-' '_'
+}
+
+save_profile_credentials() {
+    local user="$1"
+    local pass="$2"
+    local safe_name
+    safe_name="$(profile_safe_name "$user")"
+    mkdir -p "$CRED_DIR" "$PROFILES_DIR" 2>/dev/null || true
     (
         umask 077
-        printf 'USERNAME=%s\nPASSWORD=%s\n' "$input_user" "$input_pass" > "$CREDFILE"
+        printf 'USERNAME=%s\nPASSWORD=%s\n' "$user" "$pass" > "$CREDFILE"
+        printf 'USERNAME=%s\nPASSWORD=%s\n' "$user" "$pass" > "$PROFILES_DIR/$safe_name"
     )
-    chmod 600 "$CREDFILE" 2>/dev/null || true
-    echo "✅ Credentials saved securely at ~/.config/bit-wifi/credentials"
+    chmod 600 "$CREDFILE" "$PROFILES_DIR/$safe_name" 2>/dev/null || true
+}
+
+read_cred_file() {
+    local file="$1"
+    READ_USER=""
+    READ_PASS=""
+    if [ -f "$file" ]; then
+        while IFS= read -r line || [ -n "$line" ]; do
+            line="${line%$'\r'}"
+            case "$line" in
+                USERNAME=*) READ_USER="${line#USERNAME=}" ;;
+                PASSWORD=*) READ_PASS="${line#PASSWORD=}" ;;
+            esac
+        done < "$file"
+        local clean_u
+        clean_u="$(strip_surrounding_quotes "$READ_USER")"
+        if [ "$clean_u" != "$READ_USER" ]; then
+            READ_USER="$clean_u"
+            READ_PASS="$(strip_surrounding_quotes "$READ_PASS")"
+        fi
+    fi
+}
+
+sync_active_to_profiles() {
+    if [ -f "$CREDFILE" ]; then
+        read_cred_file "$CREDFILE"
+        if [ -n "$READ_USER" ] && [ -n "$READ_PASS" ]; then
+            local safe_name
+            safe_name="$(profile_safe_name "$READ_USER")"
+            if [ ! -f "$PROFILES_DIR/$safe_name" ]; then
+                mkdir -p "$PROFILES_DIR" 2>/dev/null || true
+                (
+                    umask 077
+                    printf 'USERNAME=%s\nPASSWORD=%s\n' "$READ_USER" "$READ_PASS" > "$PROFILES_DIR/$safe_name"
+                ) 2>/dev/null || true
+                chmod 600 "$PROFILES_DIR/$safe_name" 2>/dev/null || true
+            fi
+        fi
+    fi
+}
+
+collect_profiles() {
+    sync_active_to_profiles
+    load_credentials
+    PROFILE_FILES=()
+    PROFILE_USERS=()
+    if [ -d "$PROFILES_DIR" ]; then
+        local f
+        for f in "$PROFILES_DIR"/*; do
+            [ -f "$f" ] || continue
+            read_cred_file "$f"
+            if [ -n "$READ_USER" ] && [ -n "$READ_PASS" ]; then
+                PROFILE_FILES+=("$f")
+                PROFILE_USERS+=("$READ_USER")
+            fi
+        done
+    fi
+}
+
+do_list_profiles() {
+    collect_profiles
+    local count="${#PROFILE_USERS[@]}"
+    echo "=== Saved BIT WiFi Profiles ($count) ==="
+    if [ "$count" -eq 0 ]; then
+        echo "  No saved profiles found. Run 'nlogin --setup' to add one."
+        return 0
+    fi
+
+    local i
+    for ((i = 0; i < count; i++)); do
+        local u="${PROFILE_USERS[$i]}"
+        if [ "$u" = "$USERNAME" ]; then
+            echo "  $((i + 1))) $u (active)"
+        else
+            echo "  $((i + 1))) $u"
+        fi
+    done
+}
+
+activate_profile_index() {
+    local idx="$1"
+    local old_user="$USERNAME"
+    local old_pass="$PASSWORD"
+    local target_file="${PROFILE_FILES[$idx]}"
+    read_cred_file "$target_file"
+    local new_user="$READ_USER"
+    local new_pass="$READ_PASS"
+
+    # If switching away from an active account, deauth the previous account first
+    if [ -n "$old_user" ] && [ -n "$old_pass" ] && [ "$old_user" != "$new_user" ]; then
+        USERNAME="$old_user"
+        PASSWORD="$old_pass"
+        do_deauth "[Switch] " >/dev/null 2>&1 || true
+    fi
+
+    save_profile_credentials "$new_user" "$new_pass"
+    USERNAME="$new_user"
+    PASSWORD="$new_pass"
+    echo "🔄 Switched active profile to: $USERNAME"
+    do_full_login
+}
+
+do_switch_profile() {
+    local target="${1:-}"
+    collect_profiles
+    local count="${#PROFILE_USERS[@]}"
+
+    if [ -n "$target" ]; then
+        if [[ "$target" =~ ^[0-9]+$ ]] && [ "$target" -ge 1 ] && [ "$target" -le "$count" ]; then
+            activate_profile_index $((target - 1))
+            return $?
+        fi
+
+        local i
+        local matched_idx=-1
+        for ((i = 0; i < count; i++)); do
+            if [ "${PROFILE_USERS[$i]}" = "$target" ]; then
+                matched_idx=$i
+                break
+            fi
+        done
+
+        if [ "$matched_idx" -lt 0 ]; then
+            local target_lower
+            target_lower=$(printf '%s' "$target" | tr '[:upper:]' '[:lower:]')
+            for ((i = 0; i < count; i++)); do
+                local u_lower
+                u_lower=$(printf '%s' "${PROFILE_USERS[$i]}" | tr '[:upper:]' '[:lower:]')
+                case "$u_lower" in
+                    *"$target_lower"*)
+                        matched_idx=$i
+                        break
+                        ;;
+                esac
+            done
+        fi
+
+        if [ "$matched_idx" -ge 0 ]; then
+            activate_profile_index "$matched_idx"
+            return $?
+        else
+            echo "❌ Error: Profile '$target' not found." >&2
+            echo "   Run 'nlogin -ls' to see saved profiles, or 'nlogin -switch' to add one." >&2
+            return 1
+        fi
+    fi
+
+    echo "=== Switch BIT WiFi Profile ($count saved) ==="
+    local i
+    for ((i = 0; i < count; i++)); do
+        local u="${PROFILE_USERS[$i]}"
+        if [ "$u" = "$USERNAME" ]; then
+            echo "  $((i + 1))) $u (active)"
+        else
+            echo "  $((i + 1))) $u"
+        fi
+    done
+    echo "  n) Add a new profile"
+    if [ "$count" -gt 0 ]; then
+        echo "  d) Delete a profile"
+    fi
+    echo "  q) Cancel"
+    echo ""
+
+    local choice=""
+    read -r -p "Select option: " choice
+    case "$choice" in
+        [nN]|[aA])
+            local prev_user="$USERNAME"
+            local prev_pass="$PASSWORD"
+            if prompt_credentials; then
+                load_credentials
+                if [ -n "$prev_user" ] && [ -n "$prev_pass" ] && [ "$prev_user" != "$USERNAME" ]; then
+                    local new_u="$USERNAME"
+                    local new_p="$PASSWORD"
+                    USERNAME="$prev_user"
+                    PASSWORD="$prev_pass"
+                    do_deauth "[Switch] " >/dev/null 2>&1 || true
+                    USERNAME="$new_u"
+                    PASSWORD="$new_p"
+                fi
+                do_full_login
+            else
+                return 1
+            fi
+            ;;
+        [dD])
+            if [ "$count" -eq 0 ]; then
+                echo "No profiles to delete."
+                return 1
+            fi
+            local del_idx=""
+            read -r -p "Enter profile number to delete [1-$count]: " del_idx
+            if [[ "$del_idx" =~ ^[0-9]+$ ]] && [ "$del_idx" -ge 1 ] && [ "$del_idx" -le "$count" ]; then
+                local del_user="${PROFILE_USERS[$((del_idx - 1))]}"
+                local del_file="${PROFILE_FILES[$((del_idx - 1))]}"
+                rm -f "$del_file"
+                echo "✅ Deleted profile: $del_user"
+                if [ "$del_user" = "$USERNAME" ]; then
+                    rm -f "$CREDFILE"
+                    collect_profiles
+                    if [ "${#PROFILE_FILES[@]}" -gt 0 ]; then
+                        read_cred_file "${PROFILE_FILES[0]}"
+                        save_profile_credentials "$READ_USER" "$READ_PASS"
+                        echo "🔄 Active profile set to: $READ_USER"
+                    fi
+                fi
+            else
+                echo "❌ Invalid profile number." >&2
+                return 1
+            fi
+            ;;
+        [qQ]|"")
+            echo "Cancelled."
+            return 0
+            ;;
+        *)
+            if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$count" ]; then
+                activate_profile_index $((choice - 1))
+                return $?
+            else
+                echo "❌ Invalid choice: $choice" >&2
+                return 1
+            fi
+            ;;
+    esac
 }
 
 run_setup() {
@@ -318,13 +567,21 @@ do_update() {
 # Parse CLI flags
 ACTION="login"
 KEEPALIVE_INTERVAL=60
+SWITCH_TARGET=""
 
 case "${1:-}" in
     -h|--help|help)
         show_help
         exit 0
         ;;
-    -s|--setup|setup)
+    -s|-switch|--switch|switch)
+        ACTION="switch"
+        SWITCH_TARGET="${2:-}"
+        ;;
+    -ls|--ls|-l|--list|ls|list)
+        ACTION="list"
+        ;;
+    -a|--add|--setup|setup|add)
         ACTION="setup"
         ;;
     -d|--logout|logout)
@@ -357,6 +614,11 @@ if [ "$ACTION" = "setup" ]; then
     exit $?
 fi
 
+if [ "$ACTION" = "list" ]; then
+    do_list_profiles
+    exit $?
+fi
+
 TEMP_RESP=$(mktemp 2>/dev/null || echo "/tmp/bit_wifi_resp_$$")
 cleanup() {
     rm -f "$TEMP_RESP"
@@ -370,6 +632,11 @@ fi
 
 if [ "$ACTION" = "update" ]; then
     do_update
+    exit $?
+fi
+
+if [ "$ACTION" = "switch" ]; then
+    do_switch_profile "$SWITCH_TARGET"
     exit $?
 fi
 

@@ -3,8 +3,37 @@
 
 CRED_DIR="$HOME/.config/bit-wifi"
 CREDFILE="$CRED_DIR/credentials"
-mkdir -p "$CRED_DIR"
-chmod 700 "$CRED_DIR" 2>/dev/null || true
+PROFILES_DIR="$CRED_DIR/profiles"
+mkdir -p "$CRED_DIR" "$PROFILES_DIR"
+chmod 700 "$CRED_DIR" "$PROFILES_DIR" 2>/dev/null || true
+
+# Preserve any pre-existing credentials file in profiles/ before overwriting
+if [ -f "$CREDFILE" ]; then
+    OLD_USER=""
+    OLD_PASS=""
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"
+        case "$line" in
+            USERNAME=*) OLD_USER="${line#USERNAME=}" ;;
+            PASSWORD=*) OLD_PASS="${line#PASSWORD=}" ;;
+        esac
+    done < "$CREDFILE"
+    if [ "${#OLD_USER}" -ge 2 ] && [ "${OLD_USER:0:1}" = '"' ] && [ "${OLD_USER: -1}" = '"' ]; then
+        OLD_USER="${OLD_USER:1:${#OLD_USER}-2}"
+        if [ "${#OLD_PASS}" -ge 2 ] && [ "${OLD_PASS:0:1}" = '"' ] && [ "${OLD_PASS: -1}" = '"' ]; then
+            OLD_PASS="${OLD_PASS:1:${#OLD_PASS}-2}"
+        fi
+    fi
+    if [ -n "$OLD_USER" ] && [ -n "$OLD_PASS" ]; then
+        OLD_SAFE=$(printf '%s' "$OLD_USER" | tr -c 'a-zA-Z0-9._@-' '_')
+        if [ ! -f "$PROFILES_DIR/$OLD_SAFE" ]; then
+            (
+                umask 077
+                printf 'USERNAME=%s\nPASSWORD=%s\n' "$OLD_USER" "$OLD_PASS" > "$PROFILES_DIR/$OLD_SAFE"
+            ) 2>/dev/null || true
+        fi
+    fi
+fi
 
 echo "=== BIT WiFi Auto Login Setup ==="
 echo ""
@@ -18,11 +47,13 @@ if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
     exit 1
 fi
 
+SAFE_PROFILE=$(printf '%s' "$USERNAME" | tr -c 'a-zA-Z0-9._@-' '_')
 (
     umask 077
     printf 'USERNAME=%s\nPASSWORD=%s\n' "$USERNAME" "$PASSWORD" > "$CREDFILE"
+    printf 'USERNAME=%s\nPASSWORD=%s\n' "$USERNAME" "$PASSWORD" > "$PROFILES_DIR/$SAFE_PROFILE"
 )
-chmod 600 "$CREDFILE" 2>/dev/null || true
+chmod 600 "$CREDFILE" "$PROFILES_DIR/$SAFE_PROFILE" 2>/dev/null || true
 echo "✅ Credentials saved securely at ~/.config/bit-wifi/credentials"
 
 # Make local repository scripts executable
